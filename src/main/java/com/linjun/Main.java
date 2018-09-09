@@ -19,8 +19,7 @@ public class Main {
      try {
          Connection connection= Nats.connect("nats://nats.databases.svc.cluster.local:4222");
          System.out.println("nats://nats.databases.svc.cluster.local:4222");
-         connection.subscribe("channels.dealwith.*",)
-
+         connection.subscribe("channels.dealwith.*",new DealHandler(connection,executorService));
      }catch (IOException e){
          System.out.println("连接nats服务器失败");
          e.printStackTrace();

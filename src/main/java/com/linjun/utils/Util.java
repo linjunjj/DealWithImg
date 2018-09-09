@@ -13,9 +13,24 @@ public class Util {
     /**
      * get all files under the directory path
      * 
-     * @param path
-     * @param files
+     * @param
+     * @param
      */
+    public static String SnakeToCamel(String src) {
+        if (src == null)
+            return null;
+        StringBuilder stringBuilder = new StringBuilder();
+        String[] strings = src.toLowerCase().split("_");
+        for (String string : strings) {
+            if (string.length() < 1)
+                continue;
+            stringBuilder.append(string.substring(0, 1).toUpperCase()).append(string.substring(1));
+        }
+
+        return stringBuilder.toString();
+    }
+
+
     public static void getFiles(final String path, Vector<String> files) {
         getFiles(new File(path), files);
     }

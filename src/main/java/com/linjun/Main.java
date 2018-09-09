@@ -17,8 +17,8 @@ public class Main {
      System.out.println("启动图片处理");
      ExecutorService executorService= Executors.newCachedThreadPool();
      try {
-         Connection connection= Nats.connect("nats://nats.databases.svc.cluster.local:4222");
-         System.out.println("nats://nats.databases.svc.cluster.local:4222");
+         Connection connection= Nats.connect("nats://localhost:4222");
+         System.out.println("nats://localhost:4222");
          connection.subscribe("channels.dealwith.*",new DealHandler(connection,executorService));
      }catch (IOException e){
          System.out.println("连接nats服务器失败");

@@ -56,7 +56,7 @@ public class CharsIdentify {
 
     /**
      * 字符识别
-     * @param input 见
+     * @param input
      * @param isChinese
      * @return
      */

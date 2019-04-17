@@ -12,135 +12,62 @@ import static com.linjun.core.CoreFunc.getPlateType;
 import static org.bytedeco.javacpp.opencv_core.*;
 import static org.bytedeco.javacpp.opencv_imgproc.*;
 
-/**
- *  字符分割
- * @author eguid
- * 
- */
+
 public class CharsSegment {
 
-    /**
-     * 字符分割
-     * 
-     * @param input
-     * @param resultVec
-     * @return <ul>
-     *         <li>more than zero: the number of chars;
-     *         <li>-3: null;
-     *         </ul>
-     */
-    public int charsSegment(final Mat input, Vector<Mat> resultVec) {
-        if (input.data().isNull())
+
+
+    public int charsSegment(final Mat in, Vector<Mat> result) {
+        if (in.data().isNull())
             return -3;
-
+        Mat threshold = new Mat();
+        Mat grey_img = new Mat();
+        cvtColor(in, grey_img, CV_RGB2GRAY);
+        int w = in.cols();
+        int h = in.rows();
+        Mat temp = new Mat(in, new Rect((int) (w * 0.1), (int) (h * 0.1), (int) (w * 0.8), (int) (h * 0.8)));
        
-        // 判断车牌颜色以此确认threshold方法
-
-        Mat img_threshold = new Mat();
-
-        Mat input_grey = new Mat();
-        cvtColor(input, input_grey, CV_RGB2GRAY);
-
-        int w = input.cols();
-        int h = input.rows();
-        Mat tmpMat = new Mat(input, new Rect((int) (w * 0.1), (int) (h * 0.1), (int) (w * 0.8), (int) (h * 0.8)));
-       
-        switch (getPlateType(tmpMat, true)) {
+        switch (getPlateType(temp, true)) {
         case BLUE:
-            threshold(input_grey, img_threshold, 10, 255, CV_THRESH_OTSU + CV_THRESH_BINARY);
+            threshold(grey_img, threshold, 10, 255, CV_THRESH_OTSU + CV_THRESH_BINARY);
             break;
         case YELLOW:
-            threshold(input_grey, img_threshold, 10, 255, CV_THRESH_OTSU + CV_THRESH_BINARY_INV);
+            threshold(grey_img, threshold, 10, 255, CV_THRESH_OTSU + CV_THRESH_BINARY_INV);
             break;
         default:
             return -3;
         }
-       
-        if (this.isDebug) {
-        	opencv_imgcodecs.imwrite("tmp/debug_char_threshold.jpg", img_threshold);
-        }
-        // 去除车牌上方的柳钉以及下方的横线等干扰
-        //clearLiuDing(img_threshold);
-       
-        if (this.isDebug) {
-            String str = "tmp/debug_char_clearLiuDing.jpg";
-            opencv_imgcodecs.imwrite(str, img_threshold);
-        }
-
-        // 找轮廓
-        Mat img_contours = new Mat();
-        img_threshold.copyTo(img_contours);
-
+        Mat num = new Mat();
+        threshold.copyTo(num);
         MatVector contours = new MatVector();
-
-        findContours(img_contours, contours, // a vector of contours
-                CV_RETR_EXTERNAL, // retrieve the external contours
-                CV_CHAIN_APPROX_NONE); // all pixels of each contours
-
-        // Start to iterate to each contour founded
-
-        // Remove patch that are no inside limits of aspect ratio and area.
-        // 将不符合特定尺寸的图块排除出去
-        Vector<Rect> vecRect = new Vector<Rect>();
+        findContours(num, contours, CV_RETR_EXTERNAL, CV_CHAIN_APPROX_NONE);
+        Vector<Rect> rect = new Vector<Rect>();
         for (int i = 0; i < contours.size(); ++i) {
             Rect mr = boundingRect(contours.get(i));
-            if (verifySizes(new Mat(img_threshold, mr)))
-                vecRect.add(mr);
+            if (verifySizes(new Mat(threshold, mr)))
+                rect.add(mr);
         }
-
-        if (vecRect.size() == 0)
+        if (rect.size() == 0)
             return -3;
-
         Vector<Rect> sortedRect = new Vector<Rect>();
-        // 对符合尺寸的图块按照从左到右进行排序
-        SortRect(vecRect, sortedRect);
-
-        // 获得指示城市的特定Rect,如苏A的"A"
+        SortRect(rect, sortedRect);
         int specIndex = GetSpecificRect(sortedRect);
-
-        if (this.isDebug) {
-            if (specIndex < sortedRect.size()) {
-                Mat specMat = new Mat(img_threshold, sortedRect.get(specIndex));
-                String str = "tmp/debug_specMat.jpg";
-                opencv_imgcodecs.imwrite(str, specMat);
-            }
-        }
-
-        // 根据特定Rect向左反推出中文字符
-        // 这样做的主要原因是根据findContours方法很难捕捉到中文字符的准确Rect，因此仅能
-        // 退过特定算法来指定
         Rect chineseRect = new Rect();
         if (specIndex < sortedRect.size())
             chineseRect = GetChineseRect(sortedRect.get(specIndex));
         else
             return -3;
-
-        if (this.isDebug) {
-            Mat chineseMat = new Mat(img_threshold, chineseRect);
-            String str = "tmp/debug_chineseMat.jpg";
-            opencv_imgcodecs.imwrite(str, chineseMat);
-        }
-
-        // 新建一个全新的排序Rect
-        // 将中文字符Rect第一个加进来，因为它肯定是最左边的
-        // 其余的Rect只按照顺序去6个，车牌只可能是7个字符！这样可以避免阴影导致的“1”字符
         Vector<Rect> newSortedRect = new Vector<Rect>();
         newSortedRect.add(chineseRect);
         RebuildRect(sortedRect, newSortedRect, specIndex);
 
         if (newSortedRect.size() == 0)
             return -3;
-
         for (int i = 0; i < newSortedRect.size(); i++) {
             Rect mr = newSortedRect.get(i);
-            Mat auxRoi = new Mat(img_threshold, mr);
-
+            Mat auxRoi = new Mat(threshold, mr);
             auxRoi = preprocessChar(auxRoi);
-            if (this.isDebug) {
-                String str = "tmp/debug_char_auxRoi_" + Integer.valueOf(i).toString() + ".jpg";
-                opencv_imgcodecs.imwrite(str, auxRoi);
-            }
-            resultVec.add(auxRoi);
+            result.add(auxRoi);
         }
         return 0;
     }

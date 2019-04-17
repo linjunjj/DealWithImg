@@ -41,23 +41,7 @@ public class Main {
             Map<String, Object> params = new HashMap<String, Object>();
             Calendar cal = Calendar.getInstance();
             String requestid ="432342312313242342342343";
-//            params.put("requestId", requestid);
-//            params.put("customerType", "PERSON");
-//            params.put("bindMobile", "18759147252");
-//            params.put("signedName", "苏永权");
-//            params.put("linkman", "苏永权");
-////            params.put("minsettleamount", "1");
-//            params.put("bankAccountNumber", "6225886002193333");
-//            params.put("bankName", "招商银行股份有限公司福州华林支行");
-//            params.put("idcard", "360731199601297635");
-//            params.put("bankHeadOfficeName", "工商银行");
-//            params.put("accountName", "林");
-//            params.put("bankAccountType", "PrivateCash");
-//            params.put("bankProvince", "350000");
-//            params.put("bankCity", "350100");
-//            params.put("bankArea", "350102");
-////            params.put("deposit", "100");
-//            params.put("callbackUrl", "http://127.127.30.131:7080/ammngweb/");
+
             params.put("merchantId","000000330");
             params.put("tradeType","UNIONPAY");
             params.put("T0Rate","0.003");

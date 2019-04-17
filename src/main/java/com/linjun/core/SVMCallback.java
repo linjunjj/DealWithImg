@@ -11,7 +11,7 @@ import org.bytedeco.javacpp.opencv_core.Mat;
 public interface SVMCallback {
 
     /***
-     * EasyPR的getFeatures回调函数,本函数是生成直方图均衡特征的回调函数
+     * 本函数是生成直方图均衡特征的回调函数
      * 
      * @param image
      * @return
@@ -19,7 +19,7 @@ public interface SVMCallback {
     public abstract Mat getHisteqFeatures(final Mat image);
 
     /**
-     * EasyPR的getFeatures回调函数, 本函数是获取垂直和水平的直方图图值
+     * 本函数是获取垂直和水平的直方图图值
      * 
      * @param image
      * @return

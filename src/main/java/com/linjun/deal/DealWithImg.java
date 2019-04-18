@@ -102,9 +102,9 @@ public class DealWithImg implements DealWithInterface {
     }
 
 
-    private  String recognition(Map<String,String> datas){
+    public   String recognition(Map<String,String> datas){
 //        获取识别图片的路径
-         String path=currentURL()+datas.get("path");
+         String path=datas.get("path");
 //         识别车牌场景类型
          String type=datas.get("type");
            long longTime=0;
